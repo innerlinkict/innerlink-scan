@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cloudscan">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Innerlink Cloudscan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --db: #1B3A5C; --pu: #4040CC; --lg: #F4F6FA; --rd: #D0D8E8;
+    --ok: #1B6B2F; --okbg: #E6F4EA; --err: #9B1C1C; --errbg: #FDE8E8;
+    --bg: #E8ECF4; --card: #fff; --txt: #1B3A5C; --muted: #6b7a90;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--txt); min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header {
+    background: #fff; border-bottom: 4px solid var(--pu);
+    padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  header img { height: 52px; }
+  header .t { text-align: right; font-size: .7rem; font-weight: 700; letter-spacing: 2px;
+              text-transform: uppercase; color: var(--muted); }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border: 1px solid var(--rd); border-radius: 14px;
+          box-shadow: 0 4px 20px rgba(27,58,92,.08); margin-bottom: 16px; overflow: hidden; }
+  .card h2 { margin: 0; padding: 12px 16px; font-size: .75rem; letter-spacing: 2px;
+             text-transform: uppercase; color: #fff;
+             background: linear-gradient(135deg, var(--db), #2a4d7a); }
+  .card .in { padding: 16px; }
+  label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: 6px; }
+  input[type=text], input[type=password], input[type=search] {
+    width: 100%; font: inherit; font-size: 16px; padding: 12px 14px;
+    border: 1.5px solid var(--rd); border-radius: 10px; background: #fff; color: var(--txt);
+  }
+  input:focus { outline: none; border-color: var(--pu); }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; min-width: 0; }
+  button, .btn {
+    font: inherit; font-weight: 700; font-size: .95rem; border: 0; border-radius: 10px;
+    padding: 12px 18px; background: var(--pu); color: #fff; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  button:disabled { opacity: .5; }
+  .btn.sec, button.sec { background: var(--lg); color: var(--db); border: 1px solid var(--rd); }
+  .hint { font-size: .8rem; color: var(--muted); margin-top: 8px; line-height: 1.45; }
+  .hint code { background: var(--lg); padding: 1px 5px; border-radius: 4px; }
+  ol.steps { padding-left: 20px; font-size: .88rem; line-height: 1.6; margin: 0 0 14px; }
+  .msg { font-size: .85rem; padding: 10px 12px; border-radius: 8px; margin-top: 10px; }
+  .msg.err { background: var(--errbg); color: var(--err); }
+  .job { display: flex; align-items: center; gap: 12px; padding: 12px 0;
+         border-bottom: 1px solid var(--rd); }
+  .job:last-child { border-bottom: 0; }
+  .job .d { flex: 1; min-width: 0; }
+  .job .n { font-weight: 700; overflow-wrap: anywhere; }
+  .job .s { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+  .job.ok .s { color: var(--ok); }
+  .job.fout .s { color: var(--err); }
+  .spin { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+          border: 3px solid var(--rd); border-top-color: var(--pu); animation: r 1s linear infinite; }
+  .dot { width: 20px; text-align: center; flex-shrink: 0; }
+  @keyframes r { to { transform: rotate(360deg); } }
+  .x { background: none; color: var(--muted); padding: 6px 8px; font-size: 1.1rem; }
+  .rap { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+         background: none; color: var(--txt); font-weight: 400; padding: 12px 4px;
+         border-bottom: 1px solid var(--rd); border-radius: 0; }
+  .rap:last-child { border-bottom: 0; }
+  .rap .n { flex: 1; font-weight: 600; overflow-wrap: anywhere; }
+  .rap .t { font-size: .8rem; color: var(--muted); }
+  .leeg { color: var(--muted); font-style: italic; font-size: .9rem; }
+  .meer { margin-top: 10px; }
+  footer { text-align: center; font-size: .75rem; color: var(--muted); padding: 8px 16px 24px; }
+  footer button { background: none; color: var(--muted); font-weight: 400; font-size: .75rem;
+                  text-decoration: underline; padding: 4px; }
+  /* Rapportviewer */
+  #viewer { position: fixed; inset: 0; background: #fff; display: none; flex-direction: column; z-index: 10; }
+  #viewer.open { display: flex; }
+  #viewer .bar { display: flex; align-items: center; gap: 8px; background: var(--db); color: #fff;
+                 padding: calc(8px + env(safe-area-inset-top)) 10px 8px; }
+  #viewer .bar .ti { flex: 1; min-width: 0; font-weight: 700; font-size: .9rem;
+                     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #viewer .bar button { padding: 8px 12px; font-size: .85rem; background: rgba(255,255,255,.15); }
+  #viewer iframe { flex: 1; border: 0; width: 100%; background: #E8ECF4; }
+  #laden { position: absolute; inset: 60px 0 0; display: flex; align-items: center;
+           justify-content: center; gap: 10px; color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="Innerlink ICT">
+  <div class="t">Cloudscan</div>
+</header>
+
+<main>
+  <!-- Eenmalige koppeling met GitHub -->
+  <section class="card" id="koppel" hidden>
+    <h2>Eenmalig koppelen</h2>
+    <div class="in">
+      <ol class="steps">
+        <li>Maak een <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> aan.</li>
+        <li>Repository access: <strong>Only select repositories</strong> → <code>innerlink-cloudscan</code>.</li>
+        <li>Permissions → Repository: <strong>Actions: Read and write</strong> en <strong>Contents: Read-only</strong>.</li>
+        <li>Plak de token hieronder. Hij blijft alleen op dit apparaat.</li>
+      </ol>
+      <label for="token">Token</label>
+      <div class="row">
+        <input id="token" type="password" placeholder="github_pat_…" autocomplete="off">
+        <button id="koppelBtn">Koppel</button>
+      </div>
+      <div id="koppelMsg"></div>
+    </div>
+  </section>
+
+  <div id="app" hidden>
+    <section class="card">
+      <h2>Nieuwe scan</h2>
+      <div class="in">
+        <form id="scanForm" class="row" autocomplete="off">
+          <input id="domein" type="text" inputmode="url" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" placeholder="voorbeeld.nl">
+          <button id="scanBtn" type="submit">Scan</button>
+        </form>
+        <div class="hint">Een scan duurt meestal 4–6 minuten. Je mag deze pagina sluiten; je ziet de voortgang terug als je hem weer opent.</div>
+        <div id="scanMsg"></div>
+      </div>
+    </section>
+
+    <section class="card" id="lopendCard" hidden>
+      <h2>Lopende scans</h2>
+      <div class="in" id="lopend"></div>
+    </section>
+
+    <section class="card">
+      <h2>Rapporten</h2>
+      <div class="in">
+        <input id="zoek" type="search" placeholder="Zoek domein…">
+        <div id="rapporten" style="margin-top:8px"><div class="leeg">Laden…</div></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer id="voet" hidden>
+  <button id="ontkoppel">Token van dit apparaat verwijderen</button>
+</footer>
+
+<div id="viewer">
+  <div class="bar">
+    <button id="terug">← Terug</button>
+    <div class="ti" id="vTitel"></div>
+    <button id="download">Download</button>
+  </div>
+  <div id="laden"><div class="spin"></div> Rapport laden…</div>
+  <iframe id="frame" title="Rapport"></iframe>
+</div>
+
+<script>
+const REPO = "innerlinkict/innerlink-cloudscan";
+const WORKFLOW = "scan.yml";
+const API = "https://api.github.com/repos/" + REPO;
+const $ = id => document.getElementById(id);
+
+// localStorage kan ontbreken (privévenster); dan werkt alles alleen tot je de pagina sluit.
+const opslag = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k)    { try { localStorage.removeItem(k); } catch {} },
+};
+let token = opslag.get("cs_token", null);
+
+async function gh(pad, opties = {}) {
+  const r = await fetch(API + pad, {
+    cache: "no-store",
+    ...opties,
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(opties.headers || {}),
+    },
+  });
+  if (r.status === 401) { ontkoppel("Token ongeldig of verlopen — koppel opnieuw."); throw new Error("401"); }
+  return r;
+}
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function normaliseer(d) {
+  return d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].trim();
+}
+const DOMEIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+
+function toon(el, tekst, soort = "err") {
+  el.innerHTML = tekst ? `<div class="msg ${soort}">${esc(tekst)}</div>` : "";
+}
+
+// ── Koppelen ────────────────────────────────────────────────────────────────
+function scherm() {
+  const gekoppeld = !!token;
+  $("koppel").hidden = gekoppeld;
+  $("app").hidden = !gekoppeld;
+  $("voet").hidden = !gekoppeld;
+  if (gekoppeld) { laadRapporten(); tekenJobs(); pollJobs(); }
+}
+
+function ontkoppel(melding) {
+  token = null;
+  opslag.del("cs_token");
+  scherm();
+  if (melding) toon($("koppelMsg"), melding);
+}
+
+$("koppelBtn").onclick = async () => {
+  const t = $("token").value.trim();
+  if (!t) return;
+  $("koppelBtn").disabled = true;
+  try {
+    const r = await fetch(API, { headers: { Authorization: "Bearer " + t } });
+    if (!r.ok) throw new Error(r.status === 404 ? "Token heeft geen toegang tot " + REPO : "GitHub gaf status " + r.status);
+    token = t;
+    opslag.set("cs_token", t);
+    $("token").value = "";
+    toon($("koppelMsg"), "");
+    scherm();
+  } catch (e) {
+    toon($("koppelMsg"), e.message);
+  } finally {
+    $("koppelBtn").disabled = false;
+  }
+};
+
+$("ontkoppel").onclick = () => {
+  if (confirm("Token van dit apparaat verwijderen?")) ontkoppel();
+};
+
+// ── Scans starten en volgen ────────────────────────────────────────────────
+let jobs = opslag.get("cs_jobs", []);   // {id, domein, start, runId, status, conclusie, url, rapport}
+const bewaarJobs = () => opslag.set("cs_jobs", jobs);
+
+$("scanForm").onsubmit = async e => {
+  e.preventDefault();
+  const domein = normaliseer($("domein").value);
+  if (!DOMEIN_RE.test(domein)) { toon($("scanMsg"), "Dat lijkt geen geldig domein."); return; }
+  $("scanBtn").disabled = true;
+  toon($("scanMsg"), "");
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  try {
+    const r = await gh(`/actions/workflows/${WORKFLOW}/dispatches`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ref: "main", inputs: { domein, aanvraag: id } }),
+    });
+    if (!r.ok) throw new Error("Starten mislukt (status " + r.status + "). Heeft de token Actions: Read and write?");
+    jobs.unshift({ id, domein, start: Date.now(), status: "gestart" });
+    bewaarJobs();
+    $("domein").value = "";
+    tekenJobs();
+    pollJobs();
+  } catch (e) {
+    if (e.message !== "401") toon($("scanMsg"), e.message);
+  } finally {
+    $("scanBtn").disabled = false;
+  }
+};
+
+function minuten(ms) {
+  const m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60;
+  return m ? `${m} min ${s}s` : `${s}s`;
+}
+
+function tekenJobs() {
+  $("lopendCard").hidden = jobs.length === 0;
+  $("lopend").innerHTML = jobs.map(j => {
+    let ico = '<div class="spin"></div>', tekst, cls = "", knop = "";
+    const duur = minuten(Date.now() - j.start);
+    if (j.status === "completed" && j.conclusie === "success") {
+      ico = '<div class="dot">✅</div>'; cls = "ok";
+      tekst = j.rapport ? "Klaar" : "Klaar — rapport zoeken…";
+      if (j.rapport) knop = `<button data-open="${esc(j.rapport)}">Open</button>`;
+    } else if (j.status === "completed") {
+      ico = '<div class="dot">❌</div>'; cls = "fout";
+      tekst = "Mislukt" + (j.conclusie ? ` (${j.conclusie})` : "");
+      if (j.url) knop = `<a class="btn sec" href="${esc(j.url)}" target="_blank" rel="noopener">Log</a>`;
+    } else if (j.status === "in_progress") {
+      tekst = `Bezig… ${duur}`;
+    } else if (j.status === "queued" || j.status === "waiting" || j.status === "pending") {
+      tekst = `In de wachtrij… ${duur}`;
+    } else {
+      tekst = `Gestart… ${duur}`;
+    }
+    const klaar = j.status === "completed";
+    return `<div class="job ${cls}">${ico}
+      <div class="d"><div class="n">${esc(j.domein)}</div><div class="s">${esc(tekst)}</div></div>
+      ${knop}${klaar ? `<button class="x" data-weg="${esc(j.id)}" aria-label="Verbergen">✕</button>` : ""}
+    </div>`;
+  }).join("");
+}
+
+$("lopend").onclick = e => {
+  const open = e.target.closest("[data-open]");
+  if (open) return openRapport(open.dataset.open);
+  const weg = e.target.closest("[data-weg]");
+  if (weg) { jobs = jobs.filter(j => j.id !== weg.dataset.weg); bewaarJobs(); tekenJobs(); }
+};
+
+let pollTimer = null;
+async function pollJobs() {
+  clearTimeout(pollTimer);
+  const open = jobs.filter(j => j.status !== "completed" || (j.conclusie === "success" && !j.rapport));
+  tekenJobs();
+  if (!open.length || !token) return;
+  try {
+    const r = await gh(`/actions/workflows/${WORKFLOW}/runs?event=workflow_dispatch&per_page=50`);
+    const runs = r.ok ? (await r.json()).workflow_runs : [];
+    let nieuwRapport = false;
+    for (const j of open) {
+      const run = runs.find(x => j.runId ? x.id === j.runId : (x.display_title || "").includes(`[${j.id}]`));
+      if (run) {
+        j.runId = run.id; j.status = run.status; j.conclusie = run.conclusion; j.url = run.html_url;
+      } else if (Date.now() - j.start > 5 * 60000 && !j.runId) {
+        j.status = "completed"; j.conclusie = "niet gevonden";
+      }
+      if (j.status === "completed" && j.conclusie === "success" && !j.rapport) nieuwRapport = true;
+    }
+    if (nieuwRapport) {
+      const lijst = await haalRapporten();
+      for (const j of open) {
+        if (j.status === "completed" && j.conclusie === "success" && !j.rapport) {
+          const hit = lijst.find(x => x.domein === j.domein);   // lijst is al nieuwste-eerst
+          if (hit) j.rapport = hit.naam;
+        }
+      }
+      tekenRapporten();
+    }
+    bewaarJobs();
+  } catch (e) { /* netwerk weg? volgende ronde opnieuw */ }
+  tekenJobs();
+  pollTimer = setTimeout(pollJobs, 8000);
+}
+
+document.addEventListener("visibilitychange", () => { if (!document.hidden && token) { pollJobs(); laadRapporten(); } });
+
+// ── Rapporten ──────────────────────────────────────────────────────────────
+let rapporten = [];
+
+async function haalRapporten() {
+  const r = await gh("/contents/rapporten");
+  if (r.status === 404) { rapporten = []; return rapporten; }
+  if (!r.ok) throw new Error("status " + r.status);
+  rapporten = (await r.json())
+    .map(f => {
+      const m = f.name.match(/^(.+)_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})\.html$/);
+      if (!m) return null;
+      return { naam: f.name, domein: m[1], sleutel: m.slice(2).join(""),
+               datum: `${m[4]}-${m[3]}-${m[2]} ${m[5]}:${m[6]}` };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.sleutel.localeCompare(a.sleutel));
+  return rapporten;
+}
+
+let toonAantal = 30;
+function tekenRapporten() {
+  const q = $("zoek").value.trim().toLowerCase();
+  const lijst = rapporten.filter(r => !q || r.domein.includes(q));
+  if (!lijst.length) {
+    $("rapporten").innerHTML = `<div class="leeg">${q ? "Geen rapporten gevonden." : "Nog geen rapporten."}</div>`;
+    return;
+  }
+  $("rapporten").innerHTML = lijst.slice(0, toonAantal).map(r =>
+    `<button class="rap" data-open="${esc(r.naam)}"><span class="n">${esc(r.domein)}</span><span class="t">${esc(r.datum)}</span></button>`
+  ).join("") + (lijst.length > toonAantal ? `<button class="sec meer" id="meer">Meer tonen (${lijst.length - toonAantal})</button>` : "");
+}
+
+async function laadRapporten() {
+  try { await haalRapporten(); tekenRapporten(); }
+  catch (e) { if (e.message !== "401") $("rapporten").innerHTML = `<div class="msg err">Rapporten laden mislukt (${esc(e.message)}).</div>`; }
+}
+
+$("zoek").oninput = () => { toonAantal = 30; tekenRapporten(); };
+$("rapporten").onclick = e => {
+  if (e.target.id === "meer") { toonAantal += 30; return tekenRapporten(); }
+  const b = e.target.closest("[data-open]");
+  if (b) openRapport(b.dataset.open);
+};
+
+// ── Viewer ─────────────────────────────────────────────────────────────────
+let huidig = null;   // {naam, html}
+
+async function openRapport(naam) {
+  huidig = null;
+  $("vTitel").textContent = naam.replace(/\.html$/, "");
+  $("frame").srcdoc = "";
+  $("laden").hidden = false;
+  $("viewer").classList.add("open");
+  history.pushState({ viewer: true }, "");
+  try {
+    const r = await gh("/contents/rapporten/" + encodeURIComponent(naam),
+                       { headers: { Accept: "application/vnd.github.raw+json" } });
+    if (!r.ok) throw new Error("status " + r.status);
+    const html = await r.text();
+    huidig = { naam, html };
+    $("frame").srcdoc = html;
+  } catch (e) {
+    if (e.message !== "401") $("frame").srcdoc = `<p style="font-family:sans-serif;padding:20px;color:#9B1C1C">Rapport laden mislukt (${esc(e.message)}).</p>`;
+  } finally {
+    $("laden").hidden = true;
+  }
+}
+
+function sluitViewer() {
+  $("viewer").classList.remove("open");
+  $("frame").srcdoc = "";
+}
+$("terug").onclick = () => history.back();
+window.addEventListener("popstate", sluitViewer);
+
+$("download").onclick = async () => {
+  if (!huidig) return;
+  const bestand = new File([huidig.html], huidig.naam, { type: "text/html" });
+  // Op telefoons via het deelmenu (bewaren in Bestanden/OneDrive), anders gewone download.
+  if (navigator.canShare && navigator.canShare({ files: [bestand] })) {
+    try { await navigator.share({ files: [bestand], title: huidig.naam }); return; }
+    catch (e) { if (e.name === "AbortError") return; }
+  }
+  const url = URL.createObjectURL(bestand);
+  const a = Object.assign(document.createElement("a"), { href: url, download: huidig.naam });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+};
+
+scherm();
+</script>
+</body>
+</html>
